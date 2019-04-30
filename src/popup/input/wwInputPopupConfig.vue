@@ -15,9 +15,9 @@
             <div class="elem">
                 <wwManagerInput class="input" color="green" v-model="result.inputConfig.placeholder" :label="`Placeholder`"></wwManagerInput>
             </div>
-            <div class="elem">
+            <!-- <div class="elem">
                 <wwManagerInput class="input" color="green" v-model="result.inputConfig.pattern" :label="`Pattern`"></wwManagerInput>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
@@ -72,13 +72,6 @@ export default {
                         text: {
                             en: 'Color',
                             fr: 'Couleur'
-                        }
-                    },
-                    {
-                        value: 'date',
-                        text: {
-                            en: 'Date',
-                            fr: 'Date'
                         }
                     },
                     {

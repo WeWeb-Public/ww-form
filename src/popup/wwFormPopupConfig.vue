@@ -41,15 +41,19 @@ export default {
                         en: 'Input',
                         fr: 'Entrée texte'
                     }
-                }
-                // , {
-                //     value: 'textarea',
-                //     text: {
-                //         en: 'Textarea',
-                //         fr: 'Zone de texte'
-                //     }
-                // }
-                ]
+                }, {
+                    value: 'textarea',
+                    text: {
+                        en: 'Textarea',
+                        fr: 'Zone de texte'
+                    }
+                }, {
+                    value: 'checkbox',
+                    text: {
+                        en: 'Checkbox',
+                        fr: 'Case à cocher'
+                    }
+                }]
             },
             result: {
                 formId: undefined,

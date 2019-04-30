@@ -10,6 +10,29 @@ const addComponent = function () {
             content: {
                 type: name,
                 data: {
+                    input: {
+                        config: {
+                        },
+                        style: {
+                            borderRadius: 3,
+                            borderWidth: 1,
+                            borderColor: 'black',
+                            borderStyle: 'solid',
+                            padding: 5
+                        }
+                    },
+                    textarea: {
+                        config: {
+                            rows: 4
+                        },
+                        style: {
+                            borderRadius: 3,
+                            borderWidth: 1,
+                            borderColor: 'black',
+                            borderStyle: 'solid',
+                            padding: 5
+                        }
+                    }
                 }
             },
             upsales: {
