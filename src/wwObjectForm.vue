@@ -140,8 +140,8 @@ export default {
         init () {
             this.wwObject.content.data = this.wwObject.content.data || {}
             // FORM
-            this.wwObject.content.data.type = 'button'
-            this.wwObject.content.data.formId = wwLib.wwWebsiteData.getCurrentPageId()
+            this.wwObject.content.data.type = this.wwObject.content.data.type || 'button'
+            this.wwObject.content.data.formId = this.wwObject.content.data.formId || wwLib.wwWebsiteData.getCurrentPageId()
             
             // BUTTON
             this.wwObject.content.data.button = this.wwObject.content.data.button || {}
