@@ -53,6 +53,12 @@ export default {
                         en: 'Checkbox',
                         fr: 'Case à cocher'
                     }
+                }, {
+                    value: 'file',
+                    text: {
+                        en: 'File upload',
+                        fr: 'Upload de fichier'
+                    }
                 }]
             },
             result: {
@@ -109,7 +115,6 @@ export default {
             font-weight: bold;
             margin-bottom: 10px;
         }
-
     }
 }
 </style>

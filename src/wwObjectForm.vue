@@ -2,44 +2,36 @@
     <div class="ww-form">
         <!-- TYPE BUTTON -->
         <div v-if="wwObject.content.data.type === 'button'" class="elem-button">
-            <span @click="submit()">
+            <span @click="submit()" :class="{'loading-button': loading}">
                 <wwObject :ww-object="wwObject.content.data.button.wwObject"></wwObject>
                 <span class="error-message">{{lang.getText(message)}}</span>
             </span>
+
+            <div v-if="loading" class="loading"></div>
         </div>
         <!-- TYPE INPUT -->
         <div class="elem-input" v-if="wwObject.content.data.type === 'input'">
-            <input class="input"
-                :class="`ww-form-${wwObject.content.data.formId}`"
-                :type="wwObject.content.data.input.config.type" 
-                :name="wwObject.content.data.input.config.name" 
-                :required="wwObject.content.data.input.config.required" 
-                :pattern="wwObject.content.data.input.config.pattern" 
-                :placeholder="wwObject.content.data.input.config.placeholder" 
-                :style="inputStyle"/>
+            <input class="input" :class="`ww-form-${wwObject.content.data.formId}`" :type="wwObject.content.data.input.config.type" :name="wwObject.content.data.input.config.name" :required="wwObject.content.data.input.config.required" :pattern="wwObject.content.data.input.config.pattern" :placeholder="wwObject.content.data.input.config.placeholder" :style="inputStyle">
         </div>
         <!-- TYPE TEXTAREA -->
         <div class="elem-input" v-if="wwObject.content.data.type === 'textarea'">
-            <textarea class="textarea" 
-                :class="`ww-form-${wwObject.content.data.formId}`"
-                :name="wwObject.content.data.textarea.config.name" 
-                :required="wwObject.content.data.textarea.config.required" 
-                :placeholder="wwObject.content.data.textarea.config.placeholder"
-                :rows="wwObject.content.data.textarea.config.rows || 4"
-                :style="textAreaStyle"/>
+            <textarea class="textarea" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.textarea.config.name" :required="wwObject.content.data.textarea.config.required" :placeholder="wwObject.content.data.textarea.config.placeholder" :rows="wwObject.content.data.textarea.config.rows || 4" :style="textAreaStyle"/>
         </div>
         <!-- TYPE CHECKBOX -->
         <div class="elem-checkbox" v-if="wwObject.content.data.type === 'checkbox'">
             <div class="checkbox">
-                <input :class="`ww-form-${wwObject.content.data.formId}`"
-                    type="checkbox" 
-                    :name="wwObject.content.data.checkbox.config.name" 
-                    :required="wwObject.content.data.checkbox.config.required" 
-                    :style="checkboxStyle"/>
+                <input :class="`ww-form-${wwObject.content.data.formId}`" type="checkbox" :name="wwObject.content.data.checkbox.config.name" :required="wwObject.content.data.checkbox.config.required" :style="checkboxStyle">
             </div>
             <div class="checkbox-text">
                 <wwObject :id="`ww-form-chekbox-text-${wwObject.id}`" :ww-object="wwObject.content.data.checkbox.wwObject"></wwObject>
             </div>
+        </div>
+        <!-- TYPE FILE -->
+        <div class="elem-file" v-if="wwObject.content.data.type === 'file'">
+            <wwObject class="input-button" :ww-object="wwObject.content.data.file.wwObject" @click.native="selectFile($event)"></wwObject>
+            <div class>{{selectedFile}}</div>
+
+            <input type="file" class="file-input" :id="`ww-form-file-${wwObject.id}`" @change="setSelectedFile($event)" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.file.config.name" :required="wwObject.content.data.file.config.required">
         </div>
     </div>
 </template>
@@ -53,6 +45,7 @@ import wwInputPopupConfig from './popup/input/wwInputPopupConfig.vue'
 import wwTextareaPopupStyle from './popup/textarea/wwTextareaPopupStyle.vue'
 import wwTextareaPopupConfig from './popup/textarea/wwTextareaPopupConfig.vue'
 import wwCheckboxPopupConfig from './popup/checkbox/wwCheckboxPopupConfig.vue'
+import wwFilePopupConfig from './popup/file/wwFilePopupConfig.vue'
 import wwWeWebServicePopup from './popup/service/wwWeWebServicePopup.vue'
 
 wwLib.wwPopups.addPopup('wwFormPopupConfig', wwFormPopupConfig)
@@ -61,6 +54,7 @@ wwLib.wwPopups.addPopup('wwInputPopupStyle', wwInputPopupStyle)
 wwLib.wwPopups.addPopup('wwTextareaPopupConfig', wwTextareaPopupConfig)
 wwLib.wwPopups.addPopup('wwTextareaPopupStyle', wwTextareaPopupStyle)
 wwLib.wwPopups.addPopup('wwCheckboxPopupConfig', wwCheckboxPopupConfig)
+wwLib.wwPopups.addPopup('wwFilePopupConfig', wwFilePopupConfig)
 wwLib.wwPopups.addPopup('wwWeWebServicePopup', wwWeWebServicePopup)
 /* wwManager:end */
 
@@ -73,8 +67,9 @@ export default {
             default: {}
         }
     },
-    data () {
+    data() {
         return {
+            loading: false,
             designName: wwLib.wwWebsiteData.getWebsiteNameFromRoute(),
             designId: wwLib.wwWebsiteData.getInfo().id,
             apiUrl: wwLib.wwApiRequests._getApiUrl(),
@@ -83,7 +78,11 @@ export default {
                     en: `An error occured, please try later`,
                     fr: `Une erreur est survenue veuillez réessayer ultérieurement`
                 },
-                elementRequired (name) {
+                filesTooBig: {
+                    en: `Max size for all combined files is 15Mb`,
+                    fr: `La taille maximale pour tous les fichiers combinés est de 15Mo`
+                },
+                elementRequired(name) {
                     return {
                         en: `Element ${name} required`,
                         fr: `L'élément ${name} est requis`
@@ -91,11 +90,12 @@ export default {
                 }
             },
             message: {},
-            lang: wwLib.wwLang
+            lang: wwLib.wwLang,
+            selectedFile: '',
         }
     },
     computed: {
-        wwObject () {
+        wwObject() {
             return this.wwObjectCtrl.get()
         },
         inputStyle() {
@@ -137,12 +137,12 @@ export default {
     },
     beforeDestroy() { },
     methods: {
-        init () {
+        init() {
             this.wwObject.content.data = this.wwObject.content.data || {}
             // FORM
             this.wwObject.content.data.type = this.wwObject.content.data.type || 'button'
             this.wwObject.content.data.formId = this.wwObject.content.data.formId || wwLib.wwWebsiteData.getCurrentPageId()
-            
+
             // BUTTON
             this.wwObject.content.data.button = this.wwObject.content.data.button || {}
             this.wwObject.content.data.button.config = this.wwObject.content.data.button.config || { weweb: { enabled: true, recipients: [{ address: { email: 'damien@weweb.io' } }] } } // need update data arch
@@ -152,17 +152,22 @@ export default {
             this.wwObject.content.data.input = this.wwObject.content.data.input || {}
             this.wwObject.content.data.input.config = this.wwObject.content.data.input.config || {}
             this.wwObject.content.data.input.style = this.wwObject.content.data.input.style || {}
-            
+
             // TEXTAREA
             this.wwObject.content.data.textarea = this.wwObject.content.data.textarea || {}
             this.wwObject.content.data.textarea.config = this.wwObject.content.data.textarea.config || {}
             this.wwObject.content.data.textarea.style = this.wwObject.content.data.textarea.style || {}
-            
+
             // CHECKBOX
             this.wwObject.content.data.checkbox = this.wwObject.content.data.checkbox || {}
             this.wwObject.content.data.checkbox.config = this.wwObject.content.data.checkbox.config || {}
             this.wwObject.content.data.checkbox.wwObject = this.wwObject.content.data.checkbox.wwObject || wwLib.wwObject.getDefault({ type: 'ww-text' })
-            
+
+            // FILE
+            this.wwObject.content.data.file = this.wwObject.content.data.file || {}
+            this.wwObject.content.data.file.config = this.wwObject.content.data.file.config || {}
+            this.wwObject.content.data.file.wwObject = this.wwObject.content.data.file.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
+
             this.wwObjectCtrl.update(this.wwObject)
         },
         getShadow(wwObjectStyle) {
@@ -173,51 +178,99 @@ export default {
             }
             return '';
         },
-        goToPage (pageId) {
+        goToPage(pageId) {
             const path = wwLib.wwWebsiteData.getPageRoute(pageId, true) || '/';
             wwLib.$router.push(path);
             this.$emit('next', null);
         },
+        selectFile(event) {
+            if (!this.wwObjectCtrl.getSectionCtrl().getEditMode()) {
+                event.preventDefault();
+                event.stopPropagation();
+                const input = this.$el.querySelector('.file-input');
+                input.click();
+            }
+        },
+        setSelectedFile(event) {
+            if (event.target.files && event.target.files.length) {
+                this.selectedFile = event.target.files[0].name;
+            }
+        },
         // SEND FORM 
-        async wewebSubmit () {
+        async wewebSubmit() {
+
+            if (this.loading) {
+                return;
+            }
+
+            this.loading = true;
             try {
+                const formData = new FormData();
+
                 const formInputs = document.getElementsByClassName(`ww-form-${this.wwObject.content.data.formId}`)
-                const body = {
-                    type: 'form',
-                    from: this.designName,
-                    form: [],
-                    recipients: this.wwObject.content.data.button.config.weweb.recipients
-                }
-            
+
+                formData.append('ww-type', 'form');
+                formData.append('ww-from', this.designName);
+                formData.append('ww-recipients', JSON.stringify(this.wwObject.content.data.button.config.weweb.recipients));
+
+                let currentSize = 0;
+
                 for (const input of formInputs) {
                     let isError = false
                     const formElem = {
-                        displayName: input.name,
+                        displayName: input.name + '',
                         value: input.value
                     }
                     if (input.type === 'checkbox') {
-                        const element = document.getElementById(`ww-form-chekbox-text-${this.wwObject.id}`)
-                        formElem.displayName = element.innerText
-                        formElem.value = (input.checked) ? ('checked') : ('not checked')
-                        if (input.required && !input.checked) isError = true
+                        const element = document.getElementById(`ww-form-chekbox-text-${this.wwObject.id}`);
+                        formElem.displayName = element.innerText;
+                        formElem.value = (input.checked) ? ('checked') : ('not checked');
+                        if (input.required && !input.checked) isError = true;
+                        formData.append(formElem.displayName, input.value);
                     }
-                    if (input.required && !formElem.value.length) isError = true
-                    
+                    else if (input.type === 'file') {
+                        formElem.value = input.files.length ? input.files[0] : false;
+                        if (input.required && !formElem.value) isError = true;
+                        formData.append(formElem.displayName, formElem.value);
+                        currentSize += formElem.value.size;
+                    }
+                    else {
+                        formData.append(formElem.displayName, input.value);
+                        if (input.required && !formElem.value.length) isError = true;
+                    }
+
+
                     if (isError) {
-                        this.message = this.messages.elementRequired(input.name)
+                        this.message = this.messages.elementRequired(input.name);
+                        this.loading = false;
                         return
                     }
-                    body.form.push(formElem)
+
+                    if (currentSize > 15000000) {
+                        this.message = this.messages.filesTooBig;
+                        this.loading = false;
+                        return
+                    }
+
                 }
-                await axios.post(`${this.apiUrl}/design/${this.designId}/send_form_info`, body)
-                this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage)
+
+
+                await axios({
+                    method: 'post',
+                    url: `${this.apiUrl}/design/${this.designId}/send_form_info`,
+                    data: formData
+                })
+
+                //this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage)
                 this.message = {}
             } catch (err) {
                 console.log(err)
                 this.message = this.messages.error
             }
+            this.loading = false;
         },
-        async submit () {
+
+        async submit() {
             try {
                 if (this.wwObject.content.data.button.config.weweb.enabled) {
                     await this.wewebSubmit()
@@ -340,6 +393,25 @@ export default {
                             shortcut: 'c',
                             hidden: this.wwObject.content.data.type !== 'checkbox',
                             next: 'WWCHECKBOX_CONFIG'
+                        },
+                        // TYPE FILE
+                        EDIT_FILE_CONFIG: {
+                            separator: {
+                                en: 'File upload element',
+                                fr: 'Upload de fichier'
+                            },
+                            title: {
+                                en: 'Change file upload config',
+                                fr: 'Changer la config du fichier à uploader'
+                            },
+                            desc: {
+                                en: '',
+                                fr: ''
+                            },
+                            icon: 'wwi wwi-icon',
+                            shortcut: 'c',
+                            hidden: this.wwObject.content.data.type !== 'file',
+                            next: 'WWFILE_CONFIG'
                         },
                         // TYPE BUTTON
                         EDIT_BUTTON_ACTION: {
@@ -464,7 +536,7 @@ export default {
                     }
                 }
             })
-             // TEXTAREA POPUP
+            // TEXTAREA POPUP
             wwLib.wwPopups.addStory('WWTEXTAREA_CONFIG', {
                 title: {
                     en: 'Text area Config',
@@ -514,6 +586,23 @@ export default {
                     }
                 }
             })
+            // FILE POPUP
+            wwLib.wwPopups.addStory('WWFILE_CONFIG', {
+                title: {
+                    en: 'File Config',
+                    fr: 'Configuration de la case à cocher'
+                },
+                type: 'wwFilePopupConfig',
+                buttons: {
+                    OK: {
+                        text: {
+                            en: 'Ok',
+                            fr: 'Valider'
+                        },
+                        next: false
+                    }
+                }
+            })
             // BUTTON POPUP
             wwLib.wwPopups.addStory('WWSERVICE_ACTION', {
                 title: {
@@ -531,10 +620,10 @@ export default {
                     }
                 }
             })
-            
+
             let copyObj = JSON.parse(JSON.stringify(this.wwObject)) // to clean
             copyObj.uniqueId += 1
-            
+            console.log(copyObj);
             let options = {
                 firstPage: 'WWFORM_EDIT',
                 data: {
@@ -677,6 +766,18 @@ export default {
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
+                  FILE CONFIG
+                \================================================================================================*/
+                this.wwObject.content.data.file.config = this.wwObject.content.data.file.config || {};
+                if (typeof (result.fileConfig) != 'undefined') {
+                    if (typeof (result.fileConfig.required) != 'undefined') {
+                        this.wwObject.content.data.file.config.required = result.fileConfig.required;
+                    }
+                    if (typeof (result.fileConfig.name) != 'undefined') {
+                        this.wwObject.content.data.file.config.name = result.fileConfig.name;
+                    }
+                }
+                /*=============================================m_ÔÔ_m=============================================\
                   WEWEB SERVICE
                 \================================================================================================*/
                 this.wwObject.content.data.button.weweb = this.wwObject.content.data.button.weweb || {};
@@ -700,7 +801,7 @@ export default {
         }
         /* wwManager:end */
     },
-    created () {
+    created() {
         this.init()
     },
     mounted: function () {
@@ -718,6 +819,34 @@ export default {
     width: 100%;
     .elem-button {
         cursor: pointer;
+        position: relative;
+
+        .loading-button {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+        }
+
+        .loading:after {
+            content: " ";
+            display: block;
+            width: 30px;
+            height: 30px;
+            margin: 1px;
+            border-radius: 50%;
+            border: 3px solid #000;
+            border-color: #000 transparent #000 transparent;
+            animation: loading 1.2s linear infinite;
+        }
     }
     .elem-input {
         width: 100%;
@@ -743,9 +872,36 @@ export default {
             width: 100%;
         }
     }
+    .elem-file {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .input-button {
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        input {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+        }
+    }
     .error-message {
         color: red;
         font-size: 70%;
+    }
+}
+
+@keyframes loading {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
     }
 }
 </style>

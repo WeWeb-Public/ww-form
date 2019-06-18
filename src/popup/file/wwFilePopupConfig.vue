@@ -3,10 +3,10 @@
         <div class="content">
             <div class="elem">
                 <div class="title">Required</div>
-                <wwManagerRadio class="radio" v-model="result.checkboxConfig.required"></wwManagerRadio>
+                <wwManagerRadio class="radio" v-model="result.fileConfig.required"></wwManagerRadio>
             </div>
             <div class="elem">
-                <wwManagerInput class="input" color="orange" v-model="result.checkboxConfig.name" :label="`Name`"></wwManagerInput>
+                <wwManagerInput class="input" color="orange" v-model="result.fileConfig.name" :label="`Name`"></wwManagerInput>
             </div>
         </div>
     </div>
@@ -14,7 +14,7 @@
 
 <script> 
 export default {
-    name: "wwCheckboxPopupStyle",
+    name: "wwFilePopupStyle",
     props: {
         options: {
             type: Object,
@@ -27,7 +27,7 @@ export default {
         return {
             wwObject: this.options.data.wwObject,
             result: {
-                checkboxConfig: {
+                fileConfig: {
                     required: false
                 }
             },
@@ -39,8 +39,8 @@ export default {
     },
     methods: {
         init() {
-            this.result.checkboxConfig.required = this.options.data.wwObject.content.data.checkbox.config.required || false
-            this.result.checkboxConfig.name = this.options.data.wwObject.content.data.checkbox.config.name
+            this.result.fileConfig.required = this.options.data.wwObject.content.data.file.config.required || false
+            this.result.fileConfig.name = this.options.data.wwObject.content.data.file.config.name
             this.options.result = this.result
         },
     },
