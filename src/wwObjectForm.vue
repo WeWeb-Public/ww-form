@@ -11,16 +11,16 @@
         </div>
         <!-- TYPE INPUT -->
         <div class="elem-input" v-if="wwObject.content.data.type === 'input'">
-            <input class="input" :class="`ww-form-${wwObject.content.data.formId}`" :type="wwObject.content.data.input.config.type" :name="wwObject.content.data.input.config.name" :required="wwObject.content.data.input.config.required" :pattern="wwObject.content.data.input.config.pattern" :placeholder="wwObject.content.data.input.config.placeholder" :style="inputStyle">
+            <input class="input" :class="`ww-form-${wwObject.content.data.formId}`" :type="wwObject.content.data.input.config.type" :name="wwObject.content.data.input.config.name" :required="wwObject.content.data.input.config.required" :pattern="wwObject.content.data.input.config.pattern" :placeholder="wwObject.content.data.input.config.placeholder" :style="inputStyle" />
         </div>
         <!-- TYPE TEXTAREA -->
         <div class="elem-input" v-if="wwObject.content.data.type === 'textarea'">
-            <textarea class="textarea" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.textarea.config.name" :required="wwObject.content.data.textarea.config.required" :placeholder="wwObject.content.data.textarea.config.placeholder" :rows="wwObject.content.data.textarea.config.rows || 4" :style="textAreaStyle"/>
+            <textarea class="textarea" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.textarea.config.name" :required="wwObject.content.data.textarea.config.required" :placeholder="wwObject.content.data.textarea.config.placeholder" :rows="wwObject.content.data.textarea.config.rows || 4" :style="textAreaStyle" />
         </div>
         <!-- TYPE CHECKBOX -->
         <div class="elem-checkbox" v-if="wwObject.content.data.type === 'checkbox'">
             <div class="checkbox">
-                <input :class="`ww-form-${wwObject.content.data.formId}`" type="checkbox" :name="wwObject.content.data.checkbox.config.name" :required="wwObject.content.data.checkbox.config.required" :style="checkboxStyle">
+                <input :class="`ww-form-${wwObject.content.data.formId}`" type="checkbox" :name="wwObject.content.data.checkbox.config.name" :required="wwObject.content.data.checkbox.config.required" :style="checkboxStyle" />
             </div>
             <div class="checkbox-text">
                 <wwObject :id="`ww-form-chekbox-text-${wwObject.id}`" :ww-object="wwObject.content.data.checkbox.wwObject"></wwObject>
@@ -31,7 +31,7 @@
             <wwObject class="input-button" :ww-object="wwObject.content.data.file.wwObject" @click.native="selectFile($event)"></wwObject>
             <div class>{{selectedFile}}</div>
 
-            <input type="file" class="file-input" :id="`ww-form-file-${wwObject.id}`" @change="setSelectedFile($event)" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.file.config.name" :required="wwObject.content.data.file.config.required">
+            <input type="file" class="file-input" :id="`ww-form-file-${wwObject.id}`" @change="setSelectedFile($event)" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.file.config.name" :required="wwObject.content.data.file.config.required" />
         </div>
     </div>
 </template>
@@ -145,7 +145,7 @@ export default {
 
             // BUTTON
             this.wwObject.content.data.button = this.wwObject.content.data.button || {}
-            this.wwObject.content.data.button.config = this.wwObject.content.data.button.config || { weweb: { enabled: true, recipients: [{ address: { email: 'damien@weweb.io' } }] } } // need update data arch
+            this.wwObject.content.data.button.config = this.wwObject.content.data.button.config || { weweb: { enabled: true, recipients: [{ address: { email: 'damien@weweb.io' } }] }, api: {} } // need update data arch
             this.wwObject.content.data.button.wwObject = this.wwObject.content.data.button.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
 
             // INPUT
@@ -261,7 +261,75 @@ export default {
                     data: formData
                 })
 
-                //this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage)
+                this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage);
+                this.message = {}
+            } catch (err) {
+                console.log(err)
+                this.message = this.messages.error
+            }
+            this.loading = false;
+        },
+        async apiSubmit() {
+
+            if (this.loading) {
+                return;
+            }
+
+            this.loading = true;
+            try {
+                const formData = {};
+
+                const formInputs = document.getElementsByClassName(`ww-form-${this.wwObject.content.data.formId}`)
+
+                let currentSize = 0;
+
+                for (const input of formInputs) {
+                    let isError = false
+                    const formElem = {
+                        displayName: input.name + '',
+                        value: input.value
+                    }
+                    if (input.type === 'checkbox') {
+                        const element = document.getElementById(`ww-form-chekbox-text-${this.wwObject.id}`);
+                        formElem.displayName = element.innerText;
+                        formElem.value = (input.checked) ? ('checked') : ('not checked');
+                        if (input.required && !input.checked) isError = true;
+                        formData[formElem.displayName] = input.value;
+                    }
+                    else if (input.type === 'file') {
+                        formElem.value = input.files.length ? input.files[0] : false;
+                        if (input.required && !formElem.value) isError = true;
+                        formData[formElem.displayName] = formElem.value;
+                        currentSize += formElem.value.size;
+                    }
+                    else {
+                        formData[formElem.displayName] = input.value;
+                        if (input.required && !formElem.value.length) isError = true;
+                    }
+
+
+                    if (isError) {
+                        this.message = this.messages.elementRequired(input.name);
+                        this.loading = false;
+                        return
+                    }
+
+                    if (currentSize > 15000000) {
+                        this.message = this.messages.filesTooBig;
+                        this.loading = false;
+                        return
+                    }
+
+                }
+
+
+                await axios({
+                    method: this.wwObject.content.data.button.config.api.method,
+                    url: this.wwObject.content.data.button.config.api.url,
+                    data: formData
+                })
+
+                this.goToPage(this.wwObject.content.data.button.config.api.linkPage);
                 this.message = {}
             } catch (err) {
                 console.log(err)
@@ -274,6 +342,9 @@ export default {
             try {
                 if (this.wwObject.content.data.button.config.weweb.enabled) {
                     await this.wewebSubmit()
+                }
+                if (this.wwObject.content.data.button.config.api.enabled) {
+                    await this.apiSubmit()
                 }
             } catch (err) {
                 console.log(err)
@@ -481,11 +552,99 @@ export default {
                             },
                             icon: 'wwi wwi-lang',
                             shortcut: 'a',
-                            // next: 'WWFORM_STYLE'
+                            next: 'WW_SERVICE_ACTION_API'
                         },
                     }
                 }
             })
+            // API POPUP
+            wwLib.wwPopups.addStory('WW_SERVICE_ACTION_API', {
+                title: {
+                    en: 'Edit API info',
+                    fr: 'Editer les infos de l\'API'
+                },
+                type: 'wwPopupForm',
+                storyData: {
+                    fields: [
+                        {
+                            label: {
+                                en: 'API URL :',
+                                fr: 'URL de l\'API :'
+                            },
+                            desc: {
+                                en: 'Form data will be sent to this URL.',
+                                fr: 'Les données du formulaire seront envoyées à cette URL.'
+                            },
+                            type: 'text',
+                            key: 'apiUrl',
+                            valueData: 'wwObject.content.data.button.config.api.url',
+                            validation: {
+                                regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}(\.[a-z]{2,6})?\b([-a-zA-Z0-9@:%_\+.~#?&//=\,]*)$/gi,
+                                message: {
+                                    en: 'URL is in incorrect format.',
+                                    fr: 'l\'url est dans un format incorrect.',
+                                }
+                            }
+                        },
+                        {
+                            label: {
+                                en: 'Method :',
+                                fr: 'Méthode :'
+                            },
+                            desc: {
+                                en: 'Method that will be used to call the API URL',
+                                fr: 'Méthode utilisée pour appeler l\'API'
+                            },
+                            type: 'select',
+                            key: 'apiMethod',
+                            valueData: 'wwObject.content.data.button.config.api.method',
+                            options: {
+                                wwObject: {},
+                                values: [
+                                    {
+                                        value: 'post',
+                                        default: true,
+                                        text: {
+                                            en: 'POST',
+                                            fr: 'POST'
+                                        }
+                                    },
+                                    {
+                                        value: 'get',
+                                        text: {
+                                            en: 'GET',
+                                            fr: 'GET'
+                                        }
+                                    },
+                                    {
+                                        value: 'delete',
+                                        text: {
+                                            en: 'DELETE',
+                                            fr: 'DELETE'
+                                        }
+                                    },
+                                    {
+                                        value: 'put',
+                                        text: {
+                                            en: 'PUT',
+                                            fr: 'PUT'
+                                        }
+                                    },
+                                ]
+                            }
+                        }
+                    ]
+                },
+                buttons: {
+                    OK: {
+                        text: {
+                            en: 'Next',
+                            fr: 'Suivant'
+                        },
+                        next: 'LINK_INTERNAL'
+                    }
+                }
+            });
             // FORM POPUP
             wwLib.wwPopups.addStory('WWFORM_CONFIG', {
                 title: {
@@ -627,7 +786,7 @@ export default {
             let options = {
                 firstPage: 'WWFORM_EDIT',
                 data: {
-                    wwObject: copyObj
+                    wwObject: copyObj,
                 }
             }
             try {
@@ -780,8 +939,10 @@ export default {
                 /*=============================================m_ÔÔ_m=============================================\
                   WEWEB SERVICE
                 \================================================================================================*/
-                this.wwObject.content.data.button.weweb = this.wwObject.content.data.button.weweb || {};
+                this.wwObject.content.data.button.config = this.wwObject.content.data.button.config || {};
+                this.wwObject.content.data.button.config.weweb = this.wwObject.content.data.button.config.weweb || {};
                 if (typeof (result.wewebService) != 'undefined') {
+                    this.wwObject.content.data.button.config.api = {};
                     if (typeof (result.wewebService.enabled) != 'undefined') {
                         this.wwObject.content.data.button.config.weweb.enabled = result.wewebService.enabled;
                     }
@@ -790,6 +951,19 @@ export default {
                     }
                     if (typeof (result.linkPage) != 'undefined') {
                         this.wwObject.content.data.button.config.weweb.linkPage = result.linkPage;
+                    }
+                }
+                /*=============================================m_ÔÔ_m=============================================\
+                  API SERVICE
+                \================================================================================================*/
+                this.wwObject.content.data.button.config.api = this.wwObject.content.data.button.config.api || {};
+                if (typeof (result.apiUrl) != 'undefined' && typeof (result.apiMethod) != 'undefined') {
+                    this.wwObject.content.data.button.config.weweb = {};
+                    this.wwObject.content.data.button.config.api.enabled = true;
+                    this.wwObject.content.data.button.config.api.url = result.apiUrl;
+                    this.wwObject.content.data.button.config.api.method = result.apiMethod;
+                    if (typeof (result.linkPage) != 'undefined') {
+                        this.wwObject.content.data.button.config.api.linkPage = result.linkPage;
                     }
                 }
                 this.wwObjectCtrl.update(this.wwObject);
