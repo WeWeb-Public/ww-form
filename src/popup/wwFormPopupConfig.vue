@@ -69,8 +69,8 @@ export default {
     },
     methods: {
         init() {
-            this.result.formId = this.wwObject.content.data.formId || wwLib.wwUtils.getUniqueId()
-            this.result.type = this.wwObject.content.data.type || typesOptions.values[0]
+            this.result.formId = this.wwObject.data.formId || wwLib.wwUtils.getUniqueId()
+            this.result.type = this.wwObject.data.type || typesOptions.values[0]
             this.options.result = this.result
         }
     },

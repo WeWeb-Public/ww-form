@@ -48,11 +48,11 @@ export default {
     },
     methods: {
         init() {
-            this.result.textareaConfig.type = this.wwObject.content.data.textarea.config.type
-            this.result.textareaConfig.required = this.wwObject.content.data.textarea.config.required || false
-            this.result.textareaConfig.name = this.wwObject.content.data.textarea.config.name
-            this.result.textareaConfig.placeholder = this.wwObject.content.data.textarea.config.placeholder
-            this.result.textareaConfig.pattern = this.wwObject.content.data.textarea.config.pattern
+            this.result.textareaConfig.type = this.wwObject.data.textarea.config.type
+            this.result.textareaConfig.required = this.wwObject.data.textarea.config.required || false
+            this.result.textareaConfig.name = this.wwObject.data.textarea.config.name
+            this.result.textareaConfig.placeholder = this.wwObject.data.textarea.config.placeholder
+            this.result.textareaConfig.pattern = this.wwObject.data.textarea.config.pattern
             this.options.result = this.result
         },
     },

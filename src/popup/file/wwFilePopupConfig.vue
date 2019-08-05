@@ -39,8 +39,8 @@ export default {
     },
     methods: {
         init() {
-            this.result.fileConfig.required = this.options.data.wwObject.content.data.file.config.required || false
-            this.result.fileConfig.name = this.options.data.wwObject.content.data.file.config.name
+            this.result.fileConfig.required = this.options.data.wwObject.data.file.config.required || false
+            this.result.fileConfig.name = this.options.data.wwObject.data.file.config.name
             this.options.result = this.result
         },
     },

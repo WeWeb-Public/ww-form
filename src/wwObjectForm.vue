@@ -1,37 +1,42 @@
 <template>
     <div class="ww-form">
         <!-- TYPE BUTTON -->
-        <div v-if="wwObject.content.data.type === 'button'" class="elem-button">
+        <div v-if="wwObject.data.type === 'button'" class="elem-button">
             <span @click="submit()" :class="{'loading-button': loading}">
-                <wwObject :ww-object="wwObject.content.data.button.wwObject"></wwObject>
+                <wwObject :ww-object="wwObject.data.button.wwObject"></wwObject>
                 <span class="error-message">{{lang.getText(message)}}</span>
             </span>
 
             <div v-if="loading" class="loading"></div>
         </div>
         <!-- TYPE INPUT -->
-        <div class="elem-input" v-if="wwObject.content.data.type === 'input'">
-            <input class="input" :class="`ww-form-${wwObject.content.data.formId}`" :type="wwObject.content.data.input.config.type" :name="wwObject.content.data.input.config.name" :required="wwObject.content.data.input.config.required" :pattern="wwObject.content.data.input.config.pattern" :placeholder="wwObject.content.data.input.config.placeholder" :style="inputStyle">
+        <div class="elem-input" v-if="wwObject.data.type === 'input'">
+            <input class="input" :class="`ww-form-${wwObject.data.formId}`" :type="wwObject.data.input.config.type" :name="wwObject.data.input.config.name" :required="wwObject.data.input.config.required" :pattern="wwObject.data.input.config.pattern" :placeholder="wwObject.data.input.config.placeholder" :style="inputStyle" />
         </div>
         <!-- TYPE TEXTAREA -->
-        <div class="elem-input" v-if="wwObject.content.data.type === 'textarea'">
-            <textarea class="textarea" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.textarea.config.name" :required="wwObject.content.data.textarea.config.required" :placeholder="wwObject.content.data.textarea.config.placeholder" :rows="wwObject.content.data.textarea.config.rows || 4" :style="textAreaStyle"/>
+        <div class="elem-input" v-if="wwObject.data.type === 'textarea'">
+            <textarea class="textarea" :class="`ww-form-${wwObject.data.formId}`" :name="wwObject.data.textarea.config.name" :required="wwObject.data.textarea.config.required" :placeholder="wwObject.data.textarea.config.placeholder" :rows="wwObject.data.textarea.config.rows || 4" :style="textAreaStyle" />
         </div>
         <!-- TYPE CHECKBOX -->
-        <div class="elem-checkbox" v-if="wwObject.content.data.type === 'checkbox'">
+        <div class="elem-checkbox" v-if="wwObject.data.type === 'checkbox'">
             <div class="checkbox">
-                <input :class="`ww-form-${wwObject.content.data.formId}`" type="checkbox" :name="wwObject.content.data.checkbox.config.name" :required="wwObject.content.data.checkbox.config.required" :style="checkboxStyle">
+                <input :class="`ww-form-${wwObject.data.formId}`" type="checkbox" :name="wwObject.data.checkbox.config.name" :required="wwObject.data.checkbox.config.required" :style="checkboxStyle" />
             </div>
             <div class="checkbox-text">
-                <wwObject :id="`ww-form-chekbox-text-${wwObject.id}`" :ww-object="wwObject.content.data.checkbox.wwObject"></wwObject>
+                <wwObject :id="`ww-form-chekbox-text-${wwObject.id}`" :ww-object="wwObject.data.checkbox.wwObject"></wwObject>
             </div>
         </div>
         <!-- TYPE FILE -->
-        <div class="elem-file" v-if="wwObject.content.data.type === 'file'">
-            <wwObject class="input-button" :ww-object="wwObject.content.data.file.wwObject" @click.native="selectFile($event)"></wwObject>
-            <div class>{{selectedFile}}</div>
+        <div class="elem-file" v-if="wwObject.data.type === 'file'">
+            <wwObject :class="{'hidden': selectedFile}" class="input-button" :ww-object="wwObject.data.file.wwObject" @click.native="selectFile($event)"></wwObject>
+            <div v-if="selectedFile" class="selected-file">
+                <div class="file">{{selectedFile}}</div>
+                <div class="reset" @click="resetSelectedFile()">
+                    <div class="wwi wwi-cross"></div>
+                </div>
+            </div>
 
-            <input type="file" class="file-input" :id="`ww-form-file-${wwObject.id}`" @change="setSelectedFile($event)" :class="`ww-form-${wwObject.content.data.formId}`" :name="wwObject.content.data.file.config.name" :required="wwObject.content.data.file.config.required">
+            <input type="file" class="file-input" :id="`ww-form-file-${wwObject.id}`" @change="setSelectedFile($event)" :class="`ww-form-${wwObject.data.formId}`" :name="wwObject.data.file.config.name" :required="wwObject.data.file.config.required" />
         </div>
     </div>
 </template>
@@ -100,7 +105,7 @@ export default {
         },
         inputStyle() {
             let style = {};
-            let wwObjectStyle = this.wwObject.content.data.input.style || {};
+            let wwObjectStyle = this.wwObject.data.input.style || {};
             if (wwObjectStyle.gradient && wwObjectStyle.gradient.value) {
                 style.background = wwObjectStyle.gradient.value;
                 style.backgroundColor = wwObjectStyle.gradient.default;
@@ -112,13 +117,13 @@ export default {
             style.borderWidth = (wwObjectStyle.borderWidth || 0) + 'px';
             style.borderColor = wwObjectStyle.borderColor || '#000000';
             style.borderStyle = wwObjectStyle.borderStyle || 'solid';
-            style.boxShadow = this.getShadow(this.wwObject.content.data.input.style);
+            style.boxShadow = this.getShadow(this.wwObject.data.input.style);
             style.padding = wwObjectStyle.padding ? (wwObjectStyle.padding / 2) + 'px ' + wwObjectStyle.padding + 'px' : '0';
             return style;
         },
         textAreaStyle() {
             let style = {};
-            let wwObjectStyle = this.wwObject.content.data.textarea.style || {};
+            let wwObjectStyle = this.wwObject.data.textarea.style || {};
             if (wwObjectStyle.gradient && wwObjectStyle.gradient.value) {
                 style.background = wwObjectStyle.gradient.value;
                 style.backgroundColor = wwObjectStyle.gradient.default;
@@ -130,7 +135,7 @@ export default {
             style.borderWidth = (wwObjectStyle.borderWidth || 0) + 'px';
             style.borderColor = wwObjectStyle.borderColor || '#000000';
             style.borderStyle = wwObjectStyle.borderStyle || 'solid';
-            style.boxShadow = this.getShadow(this.wwObject.content.data.textarea.style);
+            style.boxShadow = this.getShadow(this.wwObject.data.textarea.style);
             style.padding = wwObjectStyle.padding ? (wwObjectStyle.padding / 2) + 'px ' + wwObjectStyle.padding + 'px' : '0';
             return style;
         }
@@ -138,35 +143,35 @@ export default {
     beforeDestroy() { },
     methods: {
         init() {
-            this.wwObject.content.data = this.wwObject.content.data || {}
+            this.wwObject.data = this.wwObject.data || {}
             // FORM
-            this.wwObject.content.data.type = this.wwObject.content.data.type || 'button'
-            this.wwObject.content.data.formId = this.wwObject.content.data.formId || wwLib.wwWebsiteData.getCurrentPageId()
+            this.wwObject.data.type = this.wwObject.data.type || 'button'
+            this.wwObject.data.formId = this.wwObject.data.formId || wwLib.wwWebsiteData.getCurrentPageId()
 
             // BUTTON
-            this.wwObject.content.data.button = this.wwObject.content.data.button || {}
-            this.wwObject.content.data.button.config = this.wwObject.content.data.button.config || { weweb: { enabled: true, recipients: [{ address: { email: 'damien@weweb.io' } }] } } // need update data arch
-            this.wwObject.content.data.button.wwObject = this.wwObject.content.data.button.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
+            this.wwObject.data.button = this.wwObject.data.button || {}
+            this.wwObject.data.button.config = this.wwObject.data.button.config || { weweb: { enabled: true, recipients: [{ address: { email: 'damien@weweb.io' } }] } } // need update data arch
+            this.wwObject.data.button.wwObject = this.wwObject.data.button.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
 
             // INPUT
-            this.wwObject.content.data.input = this.wwObject.content.data.input || {}
-            this.wwObject.content.data.input.config = this.wwObject.content.data.input.config || {}
-            this.wwObject.content.data.input.style = this.wwObject.content.data.input.style || {}
+            this.wwObject.data.input = this.wwObject.data.input || {}
+            this.wwObject.data.input.config = this.wwObject.data.input.config || {}
+            this.wwObject.data.input.style = this.wwObject.data.input.style || {}
 
             // TEXTAREA
-            this.wwObject.content.data.textarea = this.wwObject.content.data.textarea || {}
-            this.wwObject.content.data.textarea.config = this.wwObject.content.data.textarea.config || {}
-            this.wwObject.content.data.textarea.style = this.wwObject.content.data.textarea.style || {}
+            this.wwObject.data.textarea = this.wwObject.data.textarea || {}
+            this.wwObject.data.textarea.config = this.wwObject.data.textarea.config || {}
+            this.wwObject.data.textarea.style = this.wwObject.data.textarea.style || {}
 
             // CHECKBOX
-            this.wwObject.content.data.checkbox = this.wwObject.content.data.checkbox || {}
-            this.wwObject.content.data.checkbox.config = this.wwObject.content.data.checkbox.config || {}
-            this.wwObject.content.data.checkbox.wwObject = this.wwObject.content.data.checkbox.wwObject || wwLib.wwObject.getDefault({ type: 'ww-text' })
+            this.wwObject.data.checkbox = this.wwObject.data.checkbox || {}
+            this.wwObject.data.checkbox.config = this.wwObject.data.checkbox.config || {}
+            this.wwObject.data.checkbox.wwObject = this.wwObject.data.checkbox.wwObject || wwLib.wwObject.getDefault({ type: 'ww-text' })
 
             // FILE
-            this.wwObject.content.data.file = this.wwObject.content.data.file || {}
-            this.wwObject.content.data.file.config = this.wwObject.content.data.file.config || {}
-            this.wwObject.content.data.file.wwObject = this.wwObject.content.data.file.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
+            this.wwObject.data.file = this.wwObject.data.file || {}
+            this.wwObject.data.file.config = this.wwObject.data.file.config || {}
+            this.wwObject.data.file.wwObject = this.wwObject.data.file.wwObject || wwLib.wwObject.getDefault({ type: 'ww-button' })
 
             this.wwObjectCtrl.update(this.wwObject)
         },
@@ -196,6 +201,10 @@ export default {
                 this.selectedFile = event.target.files[0].name;
             }
         },
+        resetSelectedFile() {
+            this.$el.querySelector('.file-input').value = "";
+            this.selectedFile = null;
+        },
         // SEND FORM 
         async wewebSubmit() {
 
@@ -207,11 +216,11 @@ export default {
             try {
                 const formData = new FormData();
 
-                const formInputs = document.getElementsByClassName(`ww-form-${this.wwObject.content.data.formId}`)
+                const formInputs = document.getElementsByClassName(`ww-form-${this.wwObject.data.formId}`)
 
                 formData.append('ww-type', 'form');
                 formData.append('ww-from', this.designName);
-                formData.append('ww-recipients', JSON.stringify(this.wwObject.content.data.button.config.weweb.recipients));
+                formData.append('ww-recipients', JSON.stringify(this.wwObject.data.button.config.weweb.recipients));
 
                 let currentSize = 0;
 
@@ -261,7 +270,7 @@ export default {
                     data: formData
                 })
 
-                //this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage)
+                //this.goToPage(this.wwObject.data.button.config.weweb.linkPage)
                 this.message = {}
             } catch (err) {
                 console.log(err)
@@ -272,7 +281,7 @@ export default {
 
         async submit() {
             try {
-                if (this.wwObject.content.data.button.config.weweb.enabled) {
+                if (this.wwObject.data.button.config.weweb.enabled) {
                     await this.wewebSubmit()
                 }
             } catch (err) {
@@ -325,7 +334,7 @@ export default {
                             },
                             icon: 'wwi wwi-icon',
                             shortcut: 'c',
-                            hidden: this.wwObject.content.data.type !== 'input',
+                            hidden: this.wwObject.data.type !== 'input',
                             next: 'WWINPUT_CONFIG'
                         },
                         EDIT_INPUT_STYLE: {
@@ -339,7 +348,7 @@ export default {
                             },
                             icon: 'wwi wwi-edit-style',
                             shortcut: 's',
-                            hidden: this.wwObject.content.data.type !== 'input',
+                            hidden: this.wwObject.data.type !== 'input',
                             next: 'WWINPUT_STYLE'
                         },
                         // TYPE TEXTAREA
@@ -358,7 +367,7 @@ export default {
                             },
                             icon: 'wwi wwi-icon',
                             shortcut: 'c',
-                            hidden: this.wwObject.content.data.type !== 'textarea',
+                            hidden: this.wwObject.data.type !== 'textarea',
                             next: 'WWTEXTAREA_CONFIG'
                         },
                         EDIT_TEXTAREA_STYLE: {
@@ -372,7 +381,7 @@ export default {
                             },
                             icon: 'wwi wwi-edit-style',
                             shortcut: 's',
-                            hidden: this.wwObject.content.data.type !== 'textarea',
+                            hidden: this.wwObject.data.type !== 'textarea',
                             next: 'WWTEXTAREA_STYLE'
                         },
                         // TYPE CHECKBOX
@@ -391,7 +400,7 @@ export default {
                             },
                             icon: 'wwi wwi-icon',
                             shortcut: 'c',
-                            hidden: this.wwObject.content.data.type !== 'checkbox',
+                            hidden: this.wwObject.data.type !== 'checkbox',
                             next: 'WWCHECKBOX_CONFIG'
                         },
                         // TYPE FILE
@@ -410,7 +419,7 @@ export default {
                             },
                             icon: 'wwi wwi-icon',
                             shortcut: 'c',
-                            hidden: this.wwObject.content.data.type !== 'file',
+                            hidden: this.wwObject.data.type !== 'file',
                             next: 'WWFILE_CONFIG'
                         },
                         // TYPE BUTTON
@@ -429,7 +438,7 @@ export default {
                             },
                             icon: 'wwi wwi-publish',
                             shortcut: 'a',
-                            hidden: this.wwObject.content.data.type !== 'button',
+                            hidden: this.wwObject.data.type !== 'button',
                             next: 'WWFORM_ACTION'
                         },
                     }
@@ -637,159 +646,159 @@ export default {
                   FORM CONFIGURATION
                 \================================================================================================*/
                 if (typeof (result.formId) != 'undefined') {
-                    this.wwObject.content.data.formId = result.formId;
+                    this.wwObject.data.formId = result.formId;
                 }
                 if (typeof (result.type) != 'undefined') {
-                    this.wwObject.content.data.type = result.type;
+                    this.wwObject.data.type = result.type;
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   INPUT STYLE
                 \================================================================================================*/
-                this.wwObject.content.data.input.style = this.wwObject.content.data.input.style || {};
+                this.wwObject.data.input.style = this.wwObject.data.input.style || {};
                 if (typeof (result.inputStyle) != 'undefined') {
                     if (typeof (result.inputStyle.borderColor) != 'undefined') {
-                        this.wwObject.content.data.input.style.borderColor = result.inputStyle.borderColor;
+                        this.wwObject.data.input.style.borderColor = result.inputStyle.borderColor;
                     }
                     if (typeof (result.inputStyle.borderRadius) != 'undefined') {
-                        this.wwObject.content.data.input.style.borderRadius = result.inputStyle.borderRadius;
+                        this.wwObject.data.input.style.borderRadius = result.inputStyle.borderRadius;
                     }
                     if (typeof (result.inputStyle.borderStyle) != 'undefined') {
-                        this.wwObject.content.data.input.style.borderStyle = result.inputStyle.borderStyle;
+                        this.wwObject.data.input.style.borderStyle = result.inputStyle.borderStyle;
                     }
                     if (typeof (result.inputStyle.borderWidth) != 'undefined') {
-                        this.wwObject.content.data.input.style.borderWidth = result.inputStyle.borderWidth;
+                        this.wwObject.data.input.style.borderWidth = result.inputStyle.borderWidth;
                     }
                     if (typeof (result.inputStyle.boxShadow) != 'undefined') {
-                        this.wwObject.content.data.input.style.boxShadow = result.inputStyle.boxShadow;
+                        this.wwObject.data.input.style.boxShadow = result.inputStyle.boxShadow;
                     }
                     if (typeof (result.inputStyle.backgroundColor) != 'undefined') {
-                        this.wwObject.content.data.input.style.backgroundColor = result.inputStyle.backgroundColor;
+                        this.wwObject.data.input.style.backgroundColor = result.inputStyle.backgroundColor;
                     }
                     if (typeof (result.inputStyle.gradient) != 'undefined') {
-                        this.wwObject.content.data.input.style.gradient = result.inputStyle.gradient;
+                        this.wwObject.data.input.style.gradient = result.inputStyle.gradient;
                     }
                     if (typeof (result.inputStyle.gradientColor) != 'undefined') {
-                        this.wwObject.content.data.input.style.backgroundColor = result.inputStyle.gradientColor;
+                        this.wwObject.data.input.style.backgroundColor = result.inputStyle.gradientColor;
                     }
                     if (typeof (result.inputStyle.padding) != 'undefined') {
-                        this.wwObject.content.data.input.style.padding = result.inputStyle.padding;
+                        this.wwObject.data.input.style.padding = result.inputStyle.padding;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   INPUT CONFIG
                 \================================================================================================*/
-                this.wwObject.content.data.input.config = this.wwObject.content.data.input.config || {};
+                this.wwObject.data.input.config = this.wwObject.data.input.config || {};
                 if (typeof (result.inputConfig) != 'undefined') {
                     if (typeof (result.inputConfig.type) != 'undefined') {
-                        this.wwObject.content.data.input.config.type = result.inputConfig.type;
+                        this.wwObject.data.input.config.type = result.inputConfig.type;
                     }
                     if (typeof (result.inputConfig.required) != 'undefined') {
-                        this.wwObject.content.data.input.config.required = result.inputConfig.required;
+                        this.wwObject.data.input.config.required = result.inputConfig.required;
                     }
                     if (typeof (result.inputConfig.name) != 'undefined') {
-                        this.wwObject.content.data.input.config.name = result.inputConfig.name;
+                        this.wwObject.data.input.config.name = result.inputConfig.name;
                     }
                     if (typeof (result.inputConfig.placeholder) != 'undefined') {
-                        this.wwObject.content.data.input.config.placeholder = result.inputConfig.placeholder;
+                        this.wwObject.data.input.config.placeholder = result.inputConfig.placeholder;
                     }
                     if (typeof (result.inputConfig.pattern) != 'undefined') {
-                        this.wwObject.content.data.input.config.pattern = result.inputConfig.pattern;
+                        this.wwObject.data.input.config.pattern = result.inputConfig.pattern;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   TEXTAREA STYLE
                 \================================================================================================*/
-                this.wwObject.content.data.textarea.style = this.wwObject.content.data.textarea.style || {};
+                this.wwObject.data.textarea.style = this.wwObject.data.textarea.style || {};
                 if (typeof (result.textareaStyle) != 'undefined') {
                     if (typeof (result.textareaStyle.borderColor) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.borderColor = result.textareaStyle.borderColor;
+                        this.wwObject.data.textarea.style.borderColor = result.textareaStyle.borderColor;
                     }
                     if (typeof (result.textareaStyle.borderRadius) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.borderRadius = result.textareaStyle.borderRadius;
+                        this.wwObject.data.textarea.style.borderRadius = result.textareaStyle.borderRadius;
                     }
                     if (typeof (result.textareaStyle.borderStyle) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.borderStyle = result.textareaStyle.borderStyle;
+                        this.wwObject.data.textarea.style.borderStyle = result.textareaStyle.borderStyle;
                     }
                     if (typeof (result.textareaStyle.borderWidth) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.borderWidth = result.textareaStyle.borderWidth;
+                        this.wwObject.data.textarea.style.borderWidth = result.textareaStyle.borderWidth;
                     }
                     if (typeof (result.textareaStyle.boxShadow) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.boxShadow = result.textareaStyle.boxShadow;
+                        this.wwObject.data.textarea.style.boxShadow = result.textareaStyle.boxShadow;
                     }
                     if (typeof (result.textareaStyle.backgroundColor) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.backgroundColor = result.textareaStyle.backgroundColor;
+                        this.wwObject.data.textarea.style.backgroundColor = result.textareaStyle.backgroundColor;
                     }
                     if (typeof (result.textareaStyle.gradient) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.gradient = result.textareaStyle.gradient;
+                        this.wwObject.data.textarea.style.gradient = result.textareaStyle.gradient;
                     }
                     if (typeof (result.textareaStyle.gradientColor) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.backgroundColor = result.textareaStyle.gradientColor;
+                        this.wwObject.data.textarea.style.backgroundColor = result.textareaStyle.gradientColor;
                     }
                     if (typeof (result.textareaStyle.padding) != 'undefined') {
-                        this.wwObject.content.data.textarea.style.padding = result.textareaStyle.padding;
+                        this.wwObject.data.textarea.style.padding = result.textareaStyle.padding;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   TEXTAREA CONFIG
                 \================================================================================================*/
-                this.wwObject.content.data.textarea.config = this.wwObject.content.data.textarea.config || {};
+                this.wwObject.data.textarea.config = this.wwObject.data.textarea.config || {};
                 if (typeof (result.textareaConfig) != 'undefined') {
                     if (typeof (result.textareaConfig.rows) != 'undefined') {
-                        this.wwObject.content.data.textarea.config.rows = result.textareaConfig.rows;
+                        this.wwObject.data.textarea.config.rows = result.textareaConfig.rows;
                     }
                     if (typeof (result.textareaConfig.required) != 'undefined') {
-                        this.wwObject.content.data.textarea.config.required = result.textareaConfig.required;
+                        this.wwObject.data.textarea.config.required = result.textareaConfig.required;
                     }
                     if (typeof (result.textareaConfig.name) != 'undefined') {
-                        this.wwObject.content.data.textarea.config.name = result.textareaConfig.name;
+                        this.wwObject.data.textarea.config.name = result.textareaConfig.name;
                     }
                     if (typeof (result.textareaConfig.placeholder) != 'undefined') {
-                        this.wwObject.content.data.textarea.config.placeholder = result.textareaConfig.placeholder;
+                        this.wwObject.data.textarea.config.placeholder = result.textareaConfig.placeholder;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   CHECKBOX CONFIG
                 \================================================================================================*/
-                this.wwObject.content.data.checkbox.config = this.wwObject.content.data.checkbox.config || {};
+                this.wwObject.data.checkbox.config = this.wwObject.data.checkbox.config || {};
                 if (typeof (result.checkboxConfig) != 'undefined') {
                     if (typeof (result.checkboxConfig.rows) != 'undefined') {
-                        this.wwObject.content.data.checkbox.config.rows = result.checkboxConfig.rows;
+                        this.wwObject.data.checkbox.config.rows = result.checkboxConfig.rows;
                     }
                     if (typeof (result.checkboxConfig.required) != 'undefined') {
-                        this.wwObject.content.data.checkbox.config.required = result.checkboxConfig.required;
+                        this.wwObject.data.checkbox.config.required = result.checkboxConfig.required;
                     }
                     if (typeof (result.checkboxConfig.name) != 'undefined') {
-                        this.wwObject.content.data.checkbox.config.name = result.checkboxConfig.name;
+                        this.wwObject.data.checkbox.config.name = result.checkboxConfig.name;
                     }
                     if (typeof (result.checkboxConfig.placeholder) != 'undefined') {
-                        this.wwObject.content.data.checkbox.config.placeholder = result.checkboxConfig.placeholder;
+                        this.wwObject.data.checkbox.config.placeholder = result.checkboxConfig.placeholder;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   FILE CONFIG
                 \================================================================================================*/
-                this.wwObject.content.data.file.config = this.wwObject.content.data.file.config || {};
+                this.wwObject.data.file.config = this.wwObject.data.file.config || {};
                 if (typeof (result.fileConfig) != 'undefined') {
                     if (typeof (result.fileConfig.required) != 'undefined') {
-                        this.wwObject.content.data.file.config.required = result.fileConfig.required;
+                        this.wwObject.data.file.config.required = result.fileConfig.required;
                     }
                     if (typeof (result.fileConfig.name) != 'undefined') {
-                        this.wwObject.content.data.file.config.name = result.fileConfig.name;
+                        this.wwObject.data.file.config.name = result.fileConfig.name;
                     }
                 }
                 /*=============================================m_ÔÔ_m=============================================\
                   WEWEB SERVICE
                 \================================================================================================*/
-                this.wwObject.content.data.button.weweb = this.wwObject.content.data.button.weweb || {};
+                this.wwObject.data.button.weweb = this.wwObject.data.button.weweb || {};
                 if (typeof (result.wewebService) != 'undefined') {
                     if (typeof (result.wewebService.enabled) != 'undefined') {
-                        this.wwObject.content.data.button.config.weweb.enabled = result.wewebService.enabled;
+                        this.wwObject.data.button.config.weweb.enabled = result.wewebService.enabled;
                     }
                     if (typeof (result.wewebService.recipients) != 'undefined') {
-                        this.wwObject.content.data.button.config.weweb.recipients = result.wewebService.recipients;
+                        this.wwObject.data.button.config.weweb.recipients = result.wewebService.recipients;
                     }
                     if (typeof (result.linkPage) != 'undefined') {
-                        this.wwObject.content.data.button.config.weweb.linkPage = result.linkPage;
+                        this.wwObject.data.button.config.weweb.linkPage = result.linkPage;
                     }
                 }
                 this.wwObjectCtrl.update(this.wwObject);
@@ -873,10 +882,17 @@ export default {
         }
     }
     .elem-file {
+        cursor: pointer;
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: flex-start;
+        position: relative;
+
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
 
         .input-button {
             cursor: pointer;
@@ -888,6 +904,28 @@ export default {
             opacity: 0;
             visibility: hidden;
             position: absolute;
+        }
+
+        .selected-file {
+            padding: 0 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            transform: translate(-50%, -50%);
+            display: flex;
+
+            .file {
+                text-align: center;
+                overflow: hidden;
+                flex-grow: 1;
+            }
+
+            .reset {
+                flex-shrink: 1;
+                cursor: pointer;
+                font-size: 20px;
+            }
         }
     }
     .error-message {

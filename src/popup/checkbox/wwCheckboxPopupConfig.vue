@@ -39,8 +39,8 @@ export default {
     },
     methods: {
         init() {
-            this.result.checkboxConfig.required = this.options.data.wwObject.content.data.checkbox.config.required || false
-            this.result.checkboxConfig.name = this.options.data.wwObject.content.data.checkbox.config.name
+            this.result.checkboxConfig.required = this.options.data.wwObject.data.checkbox.config.required || false
+            this.result.checkboxConfig.name = this.options.data.wwObject.data.checkbox.config.name
             this.options.result = this.result
         },
     },

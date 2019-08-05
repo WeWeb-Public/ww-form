@@ -7,6 +7,23 @@ const addComponent = function () {
     if (window.vm) {
 
         wwLib.wwObject.register({
+            /* wwManager:start */
+            cmsOptions: {
+                wwObjectMenu: {
+                    items: [
+                        {
+                            name: 'OPTIONS',
+                            text: {
+                                en: 'Options...',
+                                fr: 'Options...'
+                            },
+                            icon: 'wwi wwi-edit-other',
+                            action: 'edit'
+                        }
+                    ]
+                }
+            },
+            /* wwManager:end */
             content: {
                 type: name,
                 data: {
@@ -39,24 +56,7 @@ const addComponent = function () {
                 wwAnalytics: {
                     click: true
                 }
-            },
-            /* wwManager:start */
-            cmsOptions: {
-                wwObjectMenu: {
-                    items: [
-                        {
-                            name: 'OPTIONS',
-                            text: {
-                                en: 'Options...',
-                                fr: 'Options...'
-                            },
-                            icon: 'wwi wwi-edit-other',
-                            action: 'edit'
-                        }
-                    ]
-                }
             }
-            /* wwManager:end */
         });
 
         window.vm.addComponent({

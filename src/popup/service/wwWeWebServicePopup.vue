@@ -36,9 +36,9 @@ export default {
     },
     methods: {
         init() {
-            this.wwObject.content.data.button.config.weweb = this.wwObject.content.data.button.config.weweb || {}
-            this.result.wewebService.enabled = this.wwObject.content.data.button.config.weweb.enabled || false
-            this.result.wewebService.recipients = this.wwObject.content.data.button.config.weweb.recipients || [{ address: { email: '' } }]
+            this.wwObject.data.button.config.weweb = this.wwObject.data.button.config.weweb || {}
+            this.result.wewebService.enabled = this.wwObject.data.button.config.weweb.enabled || false
+            this.result.wewebService.recipients = this.wwObject.data.button.config.weweb.recipients || [{ address: { email: '' } }]
             this.options.result = this.result
         }
     },

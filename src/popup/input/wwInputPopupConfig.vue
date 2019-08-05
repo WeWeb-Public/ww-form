@@ -98,11 +98,11 @@ export default {
     },
     methods: {
         init() {
-            this.result.inputConfig.type = this.wwObject.content.data.input.config.type
-            this.result.inputConfig.required = this.wwObject.content.data.input.config.required || false
-            this.result.inputConfig.name = this.wwObject.content.data.input.config.name
-            this.result.inputConfig.placeholder = this.wwObject.content.data.input.config.placeholder
-            this.result.inputConfig.pattern = this.wwObject.content.data.input.config.pattern
+            this.result.inputConfig.type = this.wwObject.data.input.config.type
+            this.result.inputConfig.required = this.wwObject.data.input.config.required || false
+            this.result.inputConfig.name = this.wwObject.data.input.config.name
+            this.result.inputConfig.placeholder = this.wwObject.data.input.config.placeholder
+            this.result.inputConfig.pattern = this.wwObject.data.input.config.pattern
             this.options.result = this.result
         },
     },
