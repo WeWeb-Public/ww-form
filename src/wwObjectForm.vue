@@ -261,6 +261,11 @@ export default {
                     data: formData
                 })
 
+                const popup = wwLib.wwLinkPopups.getPopup(this.$el);
+                if (popup) {
+                    popup.close();
+                }
+
                 this.goToPage(this.wwObject.content.data.button.config.weweb.linkPage);
                 this.message = {}
             } catch (err) {
